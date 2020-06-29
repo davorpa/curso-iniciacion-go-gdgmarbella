@@ -1,5 +1,9 @@
-# GoCourse
+# GDG Marbella - GO Course
 This repo contains the materials of my course about Go for GDG Marbella
+
+29 junio - 9 julio 2020
+
+https://www.meetup.com/es-ES/GDG-Marbella/events/271102791
 
 ### How to use
 The repo is organized in four branches:
