@@ -39,7 +39,7 @@ func main() {
 	for idx, site := range sites {
 		wg.Add(1)
 
-		go func(ctx context.Context, respChan chan<- bool, site string, idx int) {
+		go func(site string, idx int, ctx context.Context, respChan chan<- bool) {
 			// `defer` is a way to DRY the sync notification, on an http response error or not.
 			// it force the execution after goroutine function has exit
 			defer wg.Done()
@@ -55,7 +55,7 @@ func main() {
 			io.WriteString(os.Stdout, strconv.Itoa(idx)+": "+site+"\t\t "+res.Status+"\n")
 			// notify success response to channel
 			respChan <- true
-		}(ctx, respChan, site, idx)
+		}(site, idx, ctx, respChan)
 
 		// test if channel notification fails
 		if !<-respChan {
