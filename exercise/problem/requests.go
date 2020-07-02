@@ -6,12 +6,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 )
 
 func main() {
-	var wg sync.WaitGroup
-
 	// A cancelable context to allow comunicate goroutines one each other
 	ctx, cancel := context.WithCancel(context.Background())
 	// Best Practice: defer context `cancel` to avoid thread leaks
@@ -37,18 +34,13 @@ func main() {
 	}
 
 	for idx, site := range sites {
-		wg.Add(1)
 
 		go func(site string, idx int, ctx context.Context, respChan chan<- bool) {
-			// `defer` is a way to DRY the sync notification, on an http response error or not.
-			// it force the execution after goroutine function has exit
-			defer wg.Done()
-
 			res, err := http.Get(site)
 			if err != nil {
+				io.WriteString(os.Stderr, strconv.Itoa(idx)+": "+site+"\t\t FETCH FAIL: "+err.Error()+"\n")
 				// notify error response to channel
 				respChan <- false
-				io.WriteString(os.Stderr, strconv.Itoa(idx)+": "+site+"\t\t FETCH FAIL: "+err.Error()+"\n")
 				return
 			}
 
@@ -64,6 +56,4 @@ func main() {
 			break
 		}
 	}
-
-	wg.Wait()
 }
