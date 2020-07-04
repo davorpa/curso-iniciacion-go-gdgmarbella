@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -23,8 +24,8 @@ func main() {
 
 	wg.Add(len(sites))
 
-	for _, site := range sites {
-		go func(site string) {
+	for idx, site := range sites {
+		go func(site string, idx int) {
 			defer wg.Done()
 
 			res, err := http.Get(site)
@@ -36,9 +37,9 @@ func main() {
 			case <-ctx.Done():
 				return
 			default:
-				io.WriteString(os.Stdout, res.Status+"\n")
+				io.WriteString(os.Stdout, strconv.Itoa(idx)+": "+site+"\t\t "+res.Status+"\n")
 			}
-		}(site)
+		}(site, idx)
 
 		// time.Sleep(time.Second)
 	}
