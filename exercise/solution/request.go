@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 			select {
 			case <-ctx.Done():
 				return
-			default:
+			case <-time.After(time.Nanosecond):
 				io.WriteString(os.Stdout, strconv.Itoa(idx)+": "+site+"\t\t "+res.Status+"\n")
 			}
 		}(site, idx)
