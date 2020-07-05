@@ -35,6 +35,22 @@ func Test_Greet(t *testing.T) {
 			},
 			Wanted: "Tell us what is your name and where do you come from!\n",
 		},
+		{
+			Name: "missing Name",
+			Greet: greet.Greet{
+				Name:     "",
+				Location: "OH",
+			},
+			Wanted: "Tell us what is your name and where do you come from!\n",
+		},
+		{
+			Name: "missing Location",
+			Greet: greet.Greet{
+				Name:     "David Doyle",
+				Location: "",
+			},
+			Wanted: "Tell us what is your name and where do you come from!\n",
+		},
 	}
 
 	for _, tc := range tt {
