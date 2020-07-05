@@ -11,6 +11,7 @@ func newMux() http.Handler {
 	mux.HandleFunc("/", Debug(index))
 	mux.HandleFunc("/greet", Delay(2*time.Second, POST(greetHandler)))
 	// mux.HandleFunc("/greet", POST(greetHandler))
+	mux.HandleFunc("/greet-cached", POST(Cached(greetHandler)))
 
 	return mux
 }
