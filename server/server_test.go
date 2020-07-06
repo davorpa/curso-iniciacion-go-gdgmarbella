@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/pabloos/http/greet"
@@ -15,9 +16,10 @@ func Test_Greet(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
-		Name   string
-		Greet  greet.Greet
-		Wanted string
+		Name                  string
+		Greet                 greet.Greet
+		Wanted                string
+		ExpectedContentLength int64
 	}{
 		{
 			Name: "Green case",
@@ -25,7 +27,8 @@ func Test_Greet(t *testing.T) {
 				Name:     "John Doe",
 				Location: "NY",
 			},
-			Wanted: "Hello John Doe, from NY\n",
+			ExpectedContentLength: 24,
+			Wanted:                "Hello John Doe, from NY\n",
 		},
 		{
 			Name: "void case",
@@ -33,7 +36,8 @@ func Test_Greet(t *testing.T) {
 				Name:     "",
 				Location: "",
 			},
-			Wanted: "Tell us what is your name and where do you come from!\n",
+			ExpectedContentLength: 55,
+			Wanted:                "Tell us what is your name and where do you come from!\n",
 		},
 		{
 			Name: "missing Name",
@@ -41,7 +45,8 @@ func Test_Greet(t *testing.T) {
 				Name:     "",
 				Location: "OH",
 			},
-			Wanted: "Tell us what is your name and where do you come from!\n",
+			ExpectedContentLength: 55,
+			Wanted:                "Tell us what is your name and where do you come from!\n",
 		},
 		{
 			Name: "missing Location",
@@ -49,12 +54,15 @@ func Test_Greet(t *testing.T) {
 				Name:     "David Doyle",
 				Location: "",
 			},
-			Wanted: "Tell us what is your name and where do you come from!\n",
+			ExpectedContentLength: 55,
+			Wanted:                "Tell us what is your name and where do you come from!\n",
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
+			t.Logf("Running '%s' with payload: %#v", tc.Name, tc.Greet)
+
 			buf := new(bytes.Buffer)
 			err := json.NewEncoder(buf).Encode(tc.Greet)
 			if err != nil {
@@ -71,7 +79,7 @@ func Test_Greet(t *testing.T) {
 			greetHandler(rec, req)
 
 			res := rec.Result()
-			defer res.Body.Close()
+			res.Body.Close()
 
 			msgBytes, err := ioutil.ReadAll(res.Body)
 			if err != nil {
@@ -79,8 +87,20 @@ func Test_Greet(t *testing.T) {
 			}
 
 			msg := string(msgBytes)
+			cl := res.ContentLength
+			clh, clhErr := strconv.ParseInt(res.Header.Get("Content-Length"), 10, 64)
+			t.Logf("Response Headers: %+v", res.Header)
+			t.Logf("Response ContentLength: %d", cl)
 			if msg != tc.Wanted {
 				t.Errorf("%s failed: wanted %s, get %s", tc.Name, tc.Wanted, msg)
+			}
+			if cl != tc.ExpectedContentLength {
+				t.Errorf("%s failed: ContentLength wanted %d, get %d", tc.Name, tc.ExpectedContentLength, cl)
+			}
+			if clhErr != nil {
+				t.Errorf("%s failed: Header 'Content-Length' wanted %d, get ERROR %s", tc.Name, tc.ExpectedContentLength, clhErr.Error())
+			} else if clh != tc.ExpectedContentLength {
+				t.Errorf("%s failed: Header 'Content-Length' wanted %d, get %d", tc.Name, tc.ExpectedContentLength, clh)
 			}
 		})
 	}
