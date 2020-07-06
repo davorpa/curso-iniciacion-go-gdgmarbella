@@ -90,5 +90,6 @@ func dumpGreet(client *http.Client, cached bool, entity greet.Greet) {
 
 	defer io.Copy(os.Stdout, resp.Body)
 
-	fmt.Fprintf(os.Stdout, "%s :: %+v -> Status code: %d\n\n", greetURL, entity, resp.StatusCode)
+	fmt.Fprintf(os.Stdout, "\n\n%s :: %+v -> Status code: %d, ContentLength=%d\n",
+		greetURL, entity, resp.StatusCode, resp.ContentLength)
 }
